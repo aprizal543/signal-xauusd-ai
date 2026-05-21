@@ -30,7 +30,21 @@ from src.data_fetcher import fetch_latest_data
 from src.features     import get_latest_features
 from src.predictor    import XAUUSDPredictor
 from src.notifier     import send_signal, send_startup_message
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import threading
 
+class KeepAliveHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Bot is running!")
+    def log_message(self, format, *args):
+        pass
+
+def run_keep_alive():
+    server = HTTPServer(('0.0.0.0', 8080), KeepAliveHandler)
+    server.serve_forever()
+    
 # Config
 CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.45"))
 INTERVAL_MINUTES     = int(os.getenv("SIGNAL_INTERVAL_MINUTES", "60"))
@@ -114,6 +128,10 @@ def main():
 
     logger.info("Bot siap menerima perintah!")
 
+    ka_thread = threading.Thread(target=run_keep_alive, daemon=True)
+    ka_thread.start()
+    logger.info("Keep-alive server running on port 8080")
+    
     # Jalankan bot Telegram (blocking)
     app.run_polling(drop_pending_updates=True)
 

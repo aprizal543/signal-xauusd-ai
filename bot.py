@@ -98,6 +98,11 @@ def run_signal():
 
 
 def main():
+    
+    ka_thread = threading.Thread(target=run_keep_alive, daemon=True)
+    ka_thread.start()
+    logger.info("Keep-alive server running on port 8080")
+    
     logger.info("XAUUSD AI Signal Bot starting...")
     logger.info(f"Interval   : setiap {INTERVAL_MINUTES} menit")
     logger.info(f"Confidence : minimal {CONFIDENCE_THRESHOLD:.0%}")
@@ -128,9 +133,6 @@ def main():
 
     logger.info("Bot siap menerima perintah!")
 
-    ka_thread = threading.Thread(target=run_keep_alive, daemon=True)
-    ka_thread.start()
-    logger.info("Keep-alive server running on port 8080")
     
     # Jalankan bot Telegram (blocking)
     app.run_polling(drop_pending_updates=True)
